@@ -61,14 +61,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (data: SignUpData) => {
-    await authService.signUp(data);
-    const user = await authService.getCurrentUser();
+    const user = await authService.signUp(data);
     setUser(user);
   };
 
   const signIn = async (data: SignInData) => {
-    await authService.signIn(data);
-    const user = await authService.getCurrentUser();
+    const user = await authService.signIn(data);
     setUser(user);
   };
 

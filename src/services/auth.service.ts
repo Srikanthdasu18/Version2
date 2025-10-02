@@ -20,7 +20,7 @@ export interface SignInData {
 }
 
 export const authService = {
-  async signUp(data: SignUpData) {
+  async signUp(data: SignUpData): Promise<User> {
     const { email, password, name, role, ...userData } = data;
 
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -31,7 +31,7 @@ export const authService = {
     if (authError) throw authError;
     if (!authData.user) throw new Error('User creation failed');
 
-    const { error: userError } = await supabase.from('users').insert({
+    const userRecord = {
       id: authData.user.id,
       name,
       role,
@@ -43,32 +43,48 @@ export const authService = {
       address: userData.address || null,
       is_active: true,
       is_verified: false,
-    });
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: insertedUser, error: userError } = await supabase
+      .from('users')
+      .insert(userRecord)
+      .select('*')
+      .single();
 
     if (userError) {
       await supabase.auth.signOut();
       throw userError;
     }
 
-    return authData;
+    return insertedUser as User;
   },
 
-  async signIn(data: SignInData) {
+  async signIn(data: SignInData): Promise<User> {
     const { data: authData, error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
     });
 
     if (error) throw error;
+    if (!authData.user) throw new Error('Sign in failed');
 
-    if (authData.user) {
-      await supabase
-        .from('users')
-        .update({ last_login: new Date().toISOString() })
-        .eq('id', authData.user.id);
-    }
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', authData.user.id)
+      .single();
 
-    return authData;
+    if (userError) throw userError;
+
+    supabase
+      .from('users')
+      .update({ last_login: new Date().toISOString() })
+      .eq('id', authData.user.id)
+      .then(() => {});
+
+    return user as User;
   },
 
   async signOut() {

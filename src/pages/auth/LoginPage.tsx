@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { validateSignInData } from '../../utils/validation';
 import { Wrench } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -17,6 +18,13 @@ export function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const validation = validateSignInData(formData);
+    if (!validation.isValid) {
+      Object.values(validation.errors).forEach(error => toast.error(error));
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -24,7 +32,14 @@ export function LoginPage() {
       toast.success('Logged in successfully!');
       navigate('/');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to login');
+      const errorMessage = error.message || 'Failed to login';
+      if (errorMessage.includes('Invalid login credentials')) {
+        toast.error('Invalid email or password');
+      } else if (errorMessage.includes('Email not confirmed')) {
+        toast.error('Please confirm your email address');
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
