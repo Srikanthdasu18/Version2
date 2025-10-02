@@ -9,6 +9,7 @@ interface AuthContextType {
   signIn: (data: SignInData) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,6 +59,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(updatedUser);
   };
 
+  const refreshUser = async () => {
+    const currentUser = await authService.getCurrentUser();
+    setUser(currentUser);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -67,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signIn,
         signOut,
         updateProfile,
+        refreshUser,
       }}
     >
       {children}

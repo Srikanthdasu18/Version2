@@ -10,6 +10,7 @@ import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { ProductsPage } from './pages/customer/ProductsPage';
 import { CustomerDashboard } from './pages/customer/CustomerDashboard';
+import { ProfilePage } from './pages/profile/ProfilePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -118,6 +119,17 @@ function App() {
                     <h1 className="text-3xl font-bold">Find Mechanics - Coming Soon</h1>
                   </div>
                 </MainLayout>
+              }
+            />
+
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <ProfilePage />
+                  </MainLayout>
+                </ProtectedRoute>
               }
             />
 

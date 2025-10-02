@@ -37,6 +37,7 @@ export interface User {
   address: string | null;
   is_active: boolean;
   is_verified: boolean;
+  last_login: string | null;
   created_at: string;
   updated_at: string;
 }

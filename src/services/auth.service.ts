@@ -60,6 +60,14 @@ export const authService = {
     });
 
     if (error) throw error;
+
+    if (authData.user) {
+      await supabase
+        .from('users')
+        .update({ last_login: new Date().toISOString() })
+        .eq('id', authData.user.id);
+    }
+
     return authData;
   },
 

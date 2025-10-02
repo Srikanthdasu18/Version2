@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Menu, X, User, LogOut, Package, Wrench, Bell } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, LogOut, Package, Wrench, Bell, Settings } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCartStore } from '../../stores/cart.store';
 import { Button } from '../ui/Button';
@@ -100,7 +100,11 @@ export function Navbar() {
                   </button>
 
                   {userMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 border border-gray-200">
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-1 border border-gray-200">
+                      <div className="px-4 py-3 border-b border-gray-100">
+                        <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user.role}</p>
+                      </div>
                       <Link
                         to={getDashboardLink()}
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -108,6 +112,14 @@ export function Navbar() {
                       >
                         <User className="h-4 w-4 mr-2" />
                         Dashboard
+                      </Link>
+                      <Link
+                        to="/profile"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Profile Settings
                       </Link>
                       {user.role === 'customer' && (
                         <Link
@@ -119,16 +131,18 @@ export function Navbar() {
                           My Orders
                         </Link>
                       )}
-                      <button
-                        onClick={() => {
-                          setUserMenuOpen(false);
-                          handleSignOut();
-                        }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                      >
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Sign Out
-                      </button>
+                      <div className="border-t border-gray-100 mt-1">
+                        <button
+                          onClick={() => {
+                            setUserMenuOpen(false);
+                            handleSignOut();
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        >
+                          <LogOut className="h-4 w-4 mr-2" />
+                          Sign Out
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
