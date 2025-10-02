@@ -53,15 +53,14 @@ export const orderService = {
     return order as Order;
   },
 
-  async getOrders(userId: string, role: 'customer' | 'vendor') {
+  async getOrders(userId: string, role: 'customer' | 'vendor', limit = 50) {
     let query = supabase.from('orders').select(`
-      *,
-      customer:users(name, email, phone),
-      order_items(
-        *,
-        product:products(name, image_urls),
-        vendor:vendors(shop_name)
-      )
+      id,
+      order_number,
+      status,
+      total_amount,
+      created_at,
+      customer:users(name)
     `);
 
     if (role === 'customer') {
@@ -70,7 +69,9 @@ export const orderService = {
       query = query.eq('order_items.vendor_id', userId);
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data, error } = await query
+      .order('created_at', { ascending: false })
+      .limit(limit);
 
     if (error) throw error;
     return data as Order[];

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -5,18 +6,20 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { MainLayout } from './components/layout/MainLayout';
 import { Loading } from './components/ui/Loading';
 
-import { HomePage } from './pages/public/HomePage';
-import { LoginPage } from './pages/auth/LoginPage';
-import { RegisterPage } from './pages/auth/RegisterPage';
-import { ProductsPage } from './pages/customer/ProductsPage';
-import { CustomerDashboard } from './pages/customer/CustomerDashboard';
-import { ProfilePage } from './pages/profile/ProfilePage';
+const HomePage = lazy(() => import('./pages/public/HomePage').then(m => ({ default: m.HomePage })));
+const LoginPage = lazy(() => import('./pages/auth/LoginPage').then(m => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import('./pages/auth/RegisterPage').then(m => ({ default: m.RegisterPage })));
+const ProductsPage = lazy(() => import('./pages/customer/ProductsPage').then(m => ({ default: m.ProductsPage })));
+const CustomerDashboard = lazy(() => import('./pages/customer/CustomerDashboard').then(m => ({ default: m.CustomerDashboard })));
+const ProfilePage = lazy(() => import('./pages/profile/ProfilePage').then(m => ({ default: m.ProfilePage })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
+      staleTime: 5 * 60 * 1000,
+      cacheTime: 10 * 60 * 1000,
     },
   },
 });
@@ -42,21 +45,21 @@ function ProtectedRoute({
     return <Navigate to="/" />;
   }
 
-  return <>{children}</>;
+  return <Suspense fallback={<Loading fullScreen />}>{children}</Suspense>;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <Loading fullScreen />;
+    return <Loading fullScreen text="Loading..." />;
   }
 
   if (user) {
     return <Navigate to="/" />;
   }
 
-  return <>{children}</>;
+  return <Suspense fallback={<Loading fullScreen />}>{children}</Suspense>;
 }
 
 function App() {
@@ -86,7 +89,9 @@ function App() {
               path="/"
               element={
                 <MainLayout>
-                  <HomePage />
+                  <Suspense fallback={<Loading fullScreen />}>
+                    <HomePage />
+                  </Suspense>
                 </MainLayout>
               }
             />
@@ -95,7 +100,9 @@ function App() {
               path="/products"
               element={
                 <MainLayout>
-                  <ProductsPage />
+                  <Suspense fallback={<Loading fullScreen />}>
+                    <ProductsPage />
+                  </Suspense>
                 </MainLayout>
               }
             />

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { authService, type SignUpData, type SignInData } from '../services/auth.service';
 import type { User } from '../types';
 
@@ -14,24 +14,48 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const AUTH_TIMEOUT = 3000;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const timeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
-    authService.getCurrentUser().then((user) => {
-      setUser(user);
-      setLoading(false);
-    }).catch(() => {
-      setUser(null);
-      setLoading(false);
-    });
+    let mounted = true;
+
+    timeoutRef.current = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Auth check timeout - proceeding without user');
+        setLoading(false);
+      }
+    }, AUTH_TIMEOUT);
+
+    authService.getCurrentUser()
+      .then((user) => {
+        if (mounted) {
+          setUser(user);
+          setLoading(false);
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setUser(null);
+          setLoading(false);
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        }
+      });
 
     const { data } = authService.onAuthStateChange((user) => {
-      setUser(user);
+      if (mounted) {
+        setUser(user);
+      }
     });
 
     return () => {
+      mounted = false;
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
       data.subscription.unsubscribe();
     };
   }, []);

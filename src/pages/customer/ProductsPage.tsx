@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, Star, Package } from 'lucide-react';
 import { productService } from '../../services/product.service';
 import { cartService } from '../../services/cart.service';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCartStore } from '../../stores/cart.store';
+import { useDebounce } from '../../hooks/useDebounce';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Loading } from '../../components/ui/Loading';
@@ -23,10 +24,11 @@ export function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   useEffect(() => {
     loadData();
-  }, [selectedCategory, searchTerm]);
+  }, [selectedCategory, debouncedSearchTerm]);
 
   const loadData = async () => {
     setLoading(true);
@@ -34,7 +36,8 @@ export function ProductsPage() {
       const [productsData, categoriesData] = await Promise.all([
         productService.getProducts({
           category: selectedCategory || undefined,
-          search: searchTerm || undefined,
+          search: debouncedSearchTerm || undefined,
+          limit: 50,
         }),
         productService.getCategories(),
       ]);
@@ -167,6 +170,7 @@ export function ProductsPage() {
                           <img
                             src={product.image_urls[0]}
                             alt={product.name}
+                            loading="lazy"
                             className="w-full h-full object-cover hover:scale-105 transition-transform"
                           />
                         ) : (

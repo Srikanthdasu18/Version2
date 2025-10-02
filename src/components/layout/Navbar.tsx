@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Menu, X, User, LogOut, Package, Wrench, Bell, Settings } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCartStore } from '../../stores/cart.store';
 import { Button } from '../ui/Button';
 
-export function Navbar() {
+export const Navbar = memo(function Navbar() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -236,4 +236,4 @@ export function Navbar() {
       )}
     </nav>
   );
-}
+});

@@ -14,14 +14,16 @@ export const productService = {
     let query = supabase
       .from('products')
       .select(`
-        *,
-        vendor:vendors(
-          id,
-          shop_name,
-          logo_url,
-          rating,
-          user:users(city, latitude, longitude)
-        ),
+        id,
+        name,
+        description,
+        price,
+        compare_at_price,
+        stock_quantity,
+        image_urls,
+        rating,
+        review_count,
+        vendor:vendors(id, shop_name, logo_url, rating),
         category:product_categories(id, name, slug)
       `)
       .eq('is_active', true);
@@ -46,12 +48,11 @@ export const productService = {
       query = query.lte('price', filters.maxPrice);
     }
 
-    if (filters?.limit) {
-      query = query.limit(filters.limit);
-    }
-
+    const limit = filters?.limit || 50;
     if (filters?.offset) {
-      query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1);
+      query = query.range(filters.offset, filters.offset + limit - 1);
+    } else {
+      query = query.limit(limit);
     }
 
     const { data, error } = await query.order('created_at', { ascending: false });
@@ -91,7 +92,7 @@ export const productService = {
   async getCategories() {
     const { data, error } = await supabase
       .from('product_categories')
-      .select('*')
+      .select('id, name, slug, icon, sort_order')
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
 

@@ -36,14 +36,16 @@ export const serviceRequestService = {
     return serviceRequest as ServiceRequest;
   },
 
-  async getServiceRequests(userId: string, role: 'customer' | 'mechanic') {
+  async getServiceRequests(userId: string, role: 'customer' | 'mechanic', limit = 50) {
     let query = supabase.from('service_requests').select(`
-      *,
-      customer:users(name, phone, city),
-      mechanic:mechanics(
-        id,
-        user:users(name, phone, rating)
-      )
+      id,
+      vehicle_type,
+      issue_description,
+      status,
+      created_at,
+      estimated_cost,
+      final_cost,
+      customer:users(name, phone)
     `);
 
     if (role === 'customer') {
@@ -52,7 +54,9 @@ export const serviceRequestService = {
       query = query.eq('mechanic.user_id', userId);
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data, error } = await query
+      .order('created_at', { ascending: false })
+      .limit(limit);
 
     if (error) throw error;
     return data as ServiceRequest[];
